@@ -28,7 +28,7 @@
           <el-input v-model="form.bom" :disabled="true" style="width:100%"></el-input>
         </el-form-item>
         <el-form-item label="当前工序">
-          <el-select v-model="form.process" @change="getMaterials" placeholder="请选择当前工序" style="width:100%">
+          <el-select v-model="form.process" placeholder="请选择当前工序" style="width:100%">
             <el-option
               v-for="item in process_options"
               :key="item.value"
@@ -37,14 +37,18 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="核对物料" style="border: 1px solid black;margin:0 auto;width: 90%">
-          <div v-for="(item, index) in form.materials" :key="index" style="margin: 20px">
-            <el-tag>{{ form.materials[index].materialName }}</el-tag>
-            <el-input v-model="form.materials[index].materialCode" style="width:50%"></el-input>
-          </div>
+        <el-form-item label="tco" prop="tco">
+          <el-switch v-model="form.tco" style="width:5%;float: left" @change="use_tco"></el-switch>
         </el-form-item>
-        <el-form-item label="核对结果">
-          <el-tag :type="getCheckResultType(form.check_result)">{{ check_result_zh }}</el-tag>
+        <el-form-item label="核对物料" style="border: 1px dashed black;margin:0 auto;width: 90%">
+          <el-button type="primary" @click="add_material">添加核对物料项</el-button>
+          <el-button type="danger" @click="sub_material">减少核对物料项</el-button>
+          <div v-for="(item, index) in form.materials" :key="index" style="margin: 20px">
+            <el-tag>{{index+1}}</el-tag>
+            <el-input v-model="form.materials[index]['material_code']" style="width:50%"></el-input>
+            <el-button v-if="form.materials[index]['result']" type="success" icon="el-icon-check"></el-button>
+            <el-button v-else  type="danger" icon="el-icon-close"></el-button>
+          </div>
         </el-form-item>
         <el-form-item>
           <el-row>
@@ -55,7 +59,7 @@
               <el-button type="info" @click="clear_form">重置</el-button>
             </el-col>
             <el-col :span="8">
-              <el-button type="primary" @click="entry_result">录入结果</el-button>
+              <el-button type="primary" @click="entry_result('form')">录入结果</el-button>
             </el-col>
           </el-row>
         </el-form-item>
@@ -72,66 +76,58 @@ export default {
   },
   methods: {
     getPnAndBomByWorkerOrderNumber () {
-
-    },
-    getMaterials () {
-      if (this.form.process === 'test1') {
-        this.form.materials = [
-          {
-            materialName: 'test1测试物料名称1',
-            materialCode: ''
-          },
-          {
-            materialName: 'test1测试物料名称2',
-            materialCode: ''
-          }
-        ]
-      } else if (this.form.process === 'test2') {
-        this.form.materials = [
-          {
-            materialName: 'test2测试物料名称1',
-            materialCode: ''
-          },
-          {
-            materialName: 'test2测试物料名称2',
-            materialCode: ''
-          },
-          {
-            materialName: 'test2测试物料名称3',
-            materialCode: ''
-          }
-        ]
-      } else {
-        this.form.materials = []
-      }
+      let that = this
+      that.$axios({
+        url: '/osa_entry/entry/pn-and-bom-by-worker-order',
+        method: 'get',
+        params: {
+          workOrder: that.form.work_order_number
+        }
+      }).then(function (response) {
+        console.log(response.data)
+        that.form.bom = response.data['Bom']
+        that.form.pn = response.data['Pn']
+      }).catch(function () {
+        that.$message({
+          type: 'error',
+          message: '没有找到对应工单号信息！'
+        })
+      })
     },
     check_material () {
-      if (this.form.materials[0].materialCode !== 'test1') {
-        this.$message({
-          message: '物料代码不匹配，请核对',
-          type: 'error'
+      let that = this
+      that.$axios({
+        url: '/osa_entry/check/material_code_of_assemble_by_bom',
+        method: 'get',
+        params: {
+          bom: that.form.bom
+        }
+      }).then(function (response) {
+        console.log(response.data)
+        for (let j = 0; j < that.form.materials.length; j++) {
+          that.form.materials[j]['result'] = false
+          for (let i = 0; i < response.data.length; i++) {
+            if (response.data[i]['material_code'] === that.form.materials[j]['material_code']) {
+              that.form.materials[j]['result'] = true
+              break
+            }
+          }
+        }
+        console.log(that.form.materials)
+      }).catch(function () {
+        that.$message({
+          type: 'error',
+          message: '没有找到对应BOM信息！'
         })
-        this.form.check_result = false
-        this.check_result_zh = '不匹配'
-      } else {
-        this.$message({
-          message: '物料代码匹配',
-          type: 'success'
-        })
-        this.form.check_result = true
-        this.check_result_zh = '匹配'
-      }
+      })
     },
-    getCheckResultType (result) {
-      if (result === false) {
-        return 'danger'
-      }
-      if (result === true) {
-        return 'success'
-      }
-      if (result === null) {
-        return 'info'
-      }
+    add_material () {
+      this.form.materials.push({'material_code': '', 'result': false})
+      this.check_material()
+    },
+    sub_material () {
+      this.form.materials.pop()
+      this.check_material()
     },
     clear_form () {
       this.form = {
@@ -141,10 +137,86 @@ export default {
         pn: '',
         bom: '',
         process: '',
-        materials: [],
-        check_result: null
+        tco: false,
+        materials: []
       }
-      this.check_result_zh = '无'
+    },
+    use_tco () {
+      let that = this
+      if (that.form.tco) {
+        that.$prompt('请输入密码', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }).then(({ value }) => {
+          if (value !== '123456') {
+            that.$message({
+              type: 'error',
+              message: '密码不正确'
+            })
+            that.form.tco = false
+          }
+        }).catch(() => {
+          that.form.tco = false
+        })
+      }
+    },
+    entry_result (form) {
+      let that = this
+      that.$refs[form].validate((valid) => {
+        if (!valid) {
+          that.$message({
+            type: 'error',
+            message: '数据校验不通过'
+          })
+          return
+        }
+        if (!that.form.tco) {
+          for (let i = 0; i < that.form.materials.length; i++) {
+            if (!that.form.materials[i]['result']) {
+              that.$message({
+                type: 'danger',
+                message: '核对存在错误的结果，请重新核对'
+              })
+              return
+            }
+          }
+        }
+        let mlNumber = ''
+        let tcoInfo = ''
+        for (let i = 0; i < that.form.materials.length; i++) {
+          if (that.form.materials[i]['result']) {
+            mlNumber += that.form.materials[i]['material_code'] + ';'
+          } else {
+            tcoInfo += that.form.materials[i]['material_code'] + ';'
+          }
+        }
+        that.$axios({
+          url: '/osa_entry/entry/entry_assemble_info',
+          method: 'post',
+          data: {
+            id: Date.now(),
+            pn: that.form.pn,
+            bom: that.form.bom,
+            batch: that.form.work_order_number,
+            operator: that.form.worker_id,
+            station_id: that.form.station_id,
+            log_action: that.form.process,
+            action_time: Date.now(),
+            ml_number: mlNumber,
+            tco_info: tcoInfo
+          }
+        }).then(function () {
+          that.$message({
+            type: 'success',
+            message: '插入数据成功！'
+          })
+        }).catch(function () {
+          that.$message({
+            type: 'error',
+            message: '没有找到对应BOM信息！'
+          })
+        })
+      })
     }
   },
   data () {
@@ -156,8 +228,8 @@ export default {
         pn: '',
         bom: '',
         process: '',
-        materials: [],
-        check_result: null
+        tco: false,
+        materials: []
       },
       rules: {
         worker_id: [
@@ -178,15 +250,38 @@ export default {
       },
       process_options: [
         {
-          value: 'test1',
-          label: 'test1'
+          value: '散热器组装',
+          label: '散热器组装'
         },
         {
-          value: 'test2',
-          label: 'test2'
+          value: '贴胶',
+          label: '贴胶'
+        },
+        {
+          value: '绝缘环',
+          label: '绝缘环'
+        },
+        {
+          value: '装下壳体',
+          label: '装下壳体'
+        },
+        {
+          value: '装上壳体',
+          label: '装上壳体'
+        },
+        {
+          value: '螺丝固定',
+          label: '螺丝固定'
+        },
+        {
+          value: '弹片组装',
+          label: '弹片组装'
+        },
+        {
+          value: '解锁件组装',
+          label: '解锁件组装'
         }
-      ],
-      check_result_zh: '无'
+      ]
     }
   }
 }

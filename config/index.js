@@ -12,7 +12,7 @@ module.exports = {
     proxyTable: {
       '/osa_entry': { //自定义地址 所有/api在请求都会跳转到target路径中
         //设置你调用的接口域名和端口号 别忘了加http
-        target: 'http://172.20.2.16:8006',
+        target: 'http://172.20.2.160:8005',
         // target: 'http://172.20.3.12:8005',
         changeOrigin: true,  // 允许跨域 改变源
         pathRewrite: {
