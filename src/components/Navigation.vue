@@ -9,7 +9,7 @@
       background-color="#545c64"
       text-color="#fff"
       active-text-color="#ffd04b">
-      <el-menu-item  index="assemble_material_check_system"><router-link tag="li" :to="{path:'/assembly/assemble_material_check_system'}">装配物料BOM核对系统</router-link></el-menu-item>
+      <el-menu-item  index="assemble_material_check_system"><router-link tag="li" :to="{path:'/assemble/assemble_material_check_system'}">装配物料BOM核对系统</router-link></el-menu-item>
     </el-menu>
   </div>
 </template>
