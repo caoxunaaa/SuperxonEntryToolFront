@@ -3,17 +3,17 @@
     <h3>
       优博创数字化工厂——装配物料核对系统
     </h3>
-    <div style="border: 1px solid black;margin:0 auto;width: 90%">
-      <el-form ref="form" :rules="rules" :model="form" label-width="8%" size="small" label-position="left">
-        <el-form-item label="员工工号" prop="worker_id">
+    <div style="border: 1px solid black;margin:20px auto;width: 60%">
+      <el-form ref="form" :rules="rules" :model="form" label-width="15%" size="small" label-position="left">
+        <el-form-item label="员工工号" prop="worker_id" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-input v-model="form.worker_id" style="width:100%">
             <template slot="prepend">JS</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="台位编号">
+        <el-form-item label="台位编号" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-input v-model="form.station_id" ref="station_id" style="width:100%"></el-input>
         </el-form-item>
-        <el-form-item label="工单号">
+        <el-form-item label="工单号" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-input v-model="form.work_order_number" ref="work_order_number" style="width:69%"
                     @blur="getPnAndBomByWorkerOrderNumber"
                     @keyup.enter.native="getPnAndBomByWorkerOrderNumber"></el-input>
@@ -21,13 +21,13 @@
             工单匹配
           </el-button>
         </el-form-item>
-        <el-form-item label="产品PN">
+        <el-form-item label="产品PN" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-input v-model="form.pn" :disabled="true" style="width:100%"></el-input>
         </el-form-item>
-        <el-form-item label="BOM">
+        <el-form-item label="BOM" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-input v-model="form.bom" :disabled="true" style="width:100%"></el-input>
         </el-form-item>
-        <el-form-item label="当前工序">
+        <el-form-item label="当前工序" style="margin-left: 20px;margin-top: 20px;width: 90%">
           <el-select v-model="form.process" placeholder="请选择当前工序" style="width:100%">
             <el-option
               v-for="item in process_options"
@@ -37,7 +37,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="tco" prop="tco">
+        <el-form-item label="tco" prop="tco" style="margin-left: 20px;">
           <el-switch v-model="form.tco" style="width:5%;float: left" @change="use_tco"></el-switch>
         </el-form-item>
         <el-form-item label="核对物料" style="border: 1px dashed black;margin:0 auto;width: 90%">
