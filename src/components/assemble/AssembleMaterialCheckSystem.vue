@@ -45,7 +45,7 @@
           <el-button type="danger" @click="sub_material">减少核对物料项</el-button>
           <div v-for="(item, index) in form.materials" :key="index" style="margin: 20px">
             <el-tag>{{index+1}}</el-tag>
-            <el-input v-model="form.materials[index]['material_code']" style="width:50%"></el-input>
+            <el-input v-model="form.materials[index]['material_code']" @change="check_material" style="width:50%"></el-input>
             <el-button v-if="form.materials[index]['result']" type="success" icon="el-icon-check"></el-button>
             <el-button v-else  type="danger" icon="el-icon-close"></el-button>
           </div>
@@ -201,7 +201,7 @@ export default {
             operator: that.form.worker_id,
             station_id: that.form.station_id,
             log_action: that.form.process,
-            action_time: Date.now(),
+            action_time: '', // 默认是当前时间
             ml_number: mlNumber,
             tco_info: tcoInfo
           }
@@ -213,7 +213,7 @@ export default {
         }).catch(function () {
           that.$message({
             type: 'error',
-            message: '没有找到对应BOM信息！'
+            message: '重复插入或插入数据失败！'
           })
         })
       })
