@@ -28,7 +28,7 @@
           <el-input v-model="form.bom" :disabled="true" style="width:100%"></el-input>
         </el-form-item>
         <el-form-item label="当前工序" style="margin-left: 20px;margin-top: 20px;width: 90%">
-          <el-select v-model="form.process" placeholder="请选择当前工序" style="width:100%">
+          <el-select v-model="form.process" placeholder="请选择当前工序" style="width:100%" @visible-change="get_processes">
             <el-option
               v-for="item in process_options"
               :key="item.value"
@@ -210,11 +210,30 @@ export default {
             type: 'success',
             message: '插入数据成功！'
           })
+          that.form.tco = false
         }).catch(function () {
           that.$message({
             type: 'error',
             message: '重复插入或插入数据失败！'
           })
+        })
+      })
+    },
+    get_processes (flag) {
+      let that = this
+      if (!flag) {
+        return
+      }
+      that.$axios({
+        url: '/osa_entry/entry/assemble_process',
+        method: 'get'
+      }).then(function (response) {
+        console.log(response.data)
+        that.process_options = response.data
+      }).catch(function () {
+        that.$message({
+          type: 'error',
+          message: '没有找到配置的工序！'
         })
       })
     }
